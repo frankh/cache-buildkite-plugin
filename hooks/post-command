@@ -2,6 +2,11 @@
 # shellcheck disable=SC2001
 set -euo pipefail
 
+if [[ $BUILDKITE_COMMAND_EXIT_STATUS -ne 0 ]]; then
+  echo "Command failed, not uploading cache"
+  exit 0
+fi
+
 if [[ "${BUILDKITE_PLUGIN_CACHE_DEBUG:-false}" =~ (true|on|1) ]] ; then
   set -x
 fi

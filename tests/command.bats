@@ -32,6 +32,7 @@ load "$BATS_PATH/load.bash"
   # hacky way to unstub as unstub doesn't work
   stub tar '* : busybox tar $@ && ls $2'
 
+  export BUILDKITE_COMMAND_EXIT_STATUS=0
   export BUILDKITE_PLUGIN_CACHE_DEBUG=true
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
   export BUILDKITE_PIPELINE_SLUG="my-pipeline"
@@ -54,11 +55,13 @@ load "$BATS_PATH/load.bash"
   unset BUILDKITE_PLUGIN_CACHE_S3_BUCKET_NAME
   unset BUILDKITE_PIPELINE_SLUG
   unset BUILDKITE_ORGANIZATION_SLUG
+  unset BUILDKITE_COMMAND_EXIT_STATUS
 }
 
 @test "Post-command skips uploading if cache was restored" {
   stub aws '* : echo aws $@'
 
+  export BUILDKITE_COMMAND_EXIT_STATUS=0
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
   export BUILDKITE_PIPELINE_SLUG="my-pipeline"
   export BUILDKITE_PLUGIN_CACHE_S3_BUCKET_NAME="my-bucket"
@@ -80,5 +83,34 @@ load "$BATS_PATH/load.bash"
   unset BUILDKITE_PLUGIN_CACHE_S3_BUCKET_NAME
   unset BUILDKITE_PIPELINE_SLUG
   unset BUILDKITE_ORGANIZATION_SLUG
+  unset BUILDKITE_COMMAND_EXIT_STATUS
+}
+
+@test "Post-command skips uploading if command errored" {
+  stub aws '* : echo aws $@'
+
+  export BUILDKITE_COMMAND_EXIT_STATUS=1
+  export BUILDKITE_ORGANIZATION_SLUG="my-org"
+  export BUILDKITE_PIPELINE_SLUG="my-pipeline"
+  export BUILDKITE_PLUGIN_CACHE_S3_BUCKET_NAME="my-bucket"
+  export BUILDKITE_PLUGIN_CACHE_S3_PROFILE="my-profile"
+  export BUILDKITE_PLUGIN_CACHE_CACHE_KEY="v1-cache-key"
+  export BUILDKITE_PLUGIN_CACHE_RESTORED=":v1-cache-key:"
+  export BUILDKITE_PLUGIN_CACHE_PATHS_0="Pods"
+  export BUILDKITE_PLUGIN_CACHE_PATHS_1="Things"
+  run "$PWD/hooks/post-command"
+
+  assert_success
+  assert_output --partial "Command failed, not uploading cache"
+
+  unset BUILDKITE_PLUGIN_CACHE_PATHS_1
+  unset BUILDKITE_PLUGIN_CACHE_PATHS_0
+  unset BUILDKITE_PLUGIN_CACHE_RESTORED
+  unset BUILDKITE_PLUGIN_CACHE_CACHE_KEY
+  unset BUILDKITE_PLUGIN_CACHE_S3_PROFILE
+  unset BUILDKITE_PLUGIN_CACHE_S3_BUCKET_NAME
+  unset BUILDKITE_PIPELINE_SLUG
+  unset BUILDKITE_ORGANIZATION_SLUG
+  unset BUILDKITE_COMMAND_EXIT_STATUS
 }
 
