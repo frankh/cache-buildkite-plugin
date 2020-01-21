@@ -5,12 +5,10 @@ requirements:
   - aws
 configuration:
   properties:
-    rsync_storage:
-      type: string
     cache_key:
-      type: string
+        type: string
     paths:
-      type: [ string, array ]
+        type: [ string, array ]
     env:
       type: [ string, array ]
       minimum: 2

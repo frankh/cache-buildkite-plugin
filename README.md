@@ -33,24 +33,6 @@ export BUILDKITE_PLUGIN_CACHE_S3_BUCKET_NAME="my-unique-s3-bucket-name"
 export BUILDKITE_PLUGIN_CACHE_S3_PROFILE="my-s3-profile"
 ```
 
-The paths are synced using Amazon S3 into your bucket using a structure of
-`organization-slug/pipeline-slug/cache_key`, as determined by the Buildkite environment
+The paths are copied using Amazon S3 into your bucket using a structure of
+`organization-slug/pipeline-slug/cache_key/cache.tar.gz`, as determined by the Buildkite environment
 variables.
-
-## Rsync Storage
-
-You can also use rsync to store your files using the ``rsync_storage`` config parameter.
-If this is set it will be used as the destination parameter of a ``rsync -az`` command.
-
-```yml
-steps:
-  - plugins:
-    - danthorpe/cache#v1.0.0:
-		rsync_storage: '/tmp/buildkite-cache'
-        cache_key: "v1-cache-{{ checksum 'Podfile.lock' }}"
-        paths: [ "Pods/", "Rome/" ]
-```
-
-The paths are synced using `rsync_storage/cache_key/path`. This is useful for maintaining a local
-cache directory, even though this cache is not shared between servers, it can be reused by different
-agents/builds.
