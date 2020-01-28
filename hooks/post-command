@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # shellcheck source=lib/shared.bash
@@ -32,3 +32,6 @@ tar -czf "$tmpdir/cache.tar.gz" "${paths[@]}"
 echo "Saving cache $cache_key"
 aws s3 cp "$tmpdir/cache.tar.gz" "s3://${bucket}/cache.tar.gz"
 rm -rf "$tmpdir"
+
+# Always exit zero, we don't want to fail pipeline on cache error
+exit 0
